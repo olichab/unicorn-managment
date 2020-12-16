@@ -1,7 +1,7 @@
 // server.js create a mock api
 import { createServer, Model } from 'miragejs'
 import { uniqueNamesGenerator, names, starWars } from 'unique-names-generator'
-import { maneColors, eyeColors, hornColors, furColors, nStartingUnicorns } from './config'
+import { maneColors, tailColors, hornColors, furColors, nStartingUnicorns } from './config'
 
 const getRandomName = () => {
   return uniqueNamesGenerator({
@@ -21,7 +21,7 @@ export function makeServer ({ environment = 'development' } = {}) {
         server.create('unicorn', {
           name: getRandomName(),
           mane: maneColors[i],
-          eye: eyeColors[i],
+          tail: tailColors[i],
           fur: furColors[i],
           horn: hornColors[i]
         })
@@ -34,10 +34,14 @@ export function makeServer ({ environment = 'development' } = {}) {
         return schema.unicorns.all()
       })
 
+      let nID = nStartingUnicorns + 1
       this.post('/unicorn', (schema, request) => {
         const details = JSON.parse(request.requestBody)
-        console.log(details)
-        debugger
+        schema.unicorns.create({
+          details,
+          name: getRandomName(),
+          id: nID++
+        })
       })
     }
   })
