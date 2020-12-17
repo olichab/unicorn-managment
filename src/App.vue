@@ -7,6 +7,7 @@
 <style lang="less">
 #app {
   font-family: 'Open Sans', sans-serif;
+  background-color: crimson;
   h1, h2, h3 {
     margin: 0;
   }
