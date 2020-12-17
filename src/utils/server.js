@@ -20,10 +20,12 @@ export function makeServer ({ environment = 'development' } = {}) {
       for (let i = 0; i < nStartingUnicorns; i++) {
         server.create('unicorn', {
           name: getRandomName(),
-          mane: maneColors[i],
-          tail: tailColors[i],
-          fur: furColors[i],
-          horn: hornColors[i]
+          details: {
+            mane: maneColors[i],
+            tail: tailColors[i],
+            fur: furColors[i],
+            horn: hornColors[i]
+          }
         })
       }
     },
