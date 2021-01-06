@@ -56,3 +56,7 @@ J'espère que l'exercice vous inspirera et vous revoit pour en parler a la fin :
 Bon Dev !
 
 Rivy33
+
+# POST-SCRIPTUM
+
+En cas de soucis. N'hésitez pas à remplir une issue et à me "tag" ( @rivy33 )
