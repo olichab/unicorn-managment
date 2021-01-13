@@ -13,8 +13,7 @@
   width: 40px;
   height: 15px;
   input {
-    width: 0;
-    height: 0;
+    display: none;
     &:checked + .slider {
       background-color: @light-grey;
       &:before {
