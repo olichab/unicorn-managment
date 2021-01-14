@@ -199,31 +199,29 @@ export default {
         : (this.showListUnicornsByPair = false)
       // If all colors characteristics are selected add nb correspondence witch colors selected
       if (this.showListUnicornsByPair) {
-        this.unicornsByPair.map((unicorn) => {
-          unicorn.nbCorrespondenceColor = 0
-          Object.keys(unicorn.details).map((characteristic) => {
-            if (
-              unicorn.details[characteristic] ===
-              this.selectedColors[characteristic]
-            ) {
-              typeof unicorn.nbCorrespondenceColor === 'undefined'
-                ? (unicorn.nbCorrespondenceColor = 1)
-                : unicorn.nbCorrespondenceColor++
-            }
+        this.unicornsByPair
+          .map((unicorn) => {
+            unicorn.nbCorrespondenceColor = 0
+            Object.keys(unicorn.details).map((characteristic) => {
+              if (
+                unicorn.details[characteristic] ===
+                this.selectedColors[characteristic]
+              ) {
+                typeof unicorn.nbCorrespondenceColor === 'undefined'
+                  ? (unicorn.nbCorrespondenceColor = 1)
+                  : unicorn.nbCorrespondenceColor++
+              }
+            })
           })
-        })
-        // Sort by nbCorrespondenceColor desc
-        this.unicornsByPair.sort(
-          (a, b) => b.nbCorrespondenceColor - a.nbCorrespondenceColor
-        )
+          // Sort by nbCorrespondenceColor desc
+          .sort((a, b) => b.nbCorrespondenceColor - a.nbCorrespondenceColor)
         // Create array of pairs
-        const pairs = []
-        for (let i = 0; i < this.unicornsByPair.length; i += 2) {
-          if (this.unicornsByPair[i + 1]) {
-            pairs.push([this.unicornsByPair[i], this.unicornsByPair[i + 1]])
+        this.unicornsByPair = this.unicornsByPair.reduce((acc, val, i, arr) => {
+          if (i % 2 === 0 && arr[i + 1]) {
+            acc.push([val, arr[i + 1]])
           }
-        }
-        this.unicornsByPair = pairs
+          return acc
+        }, [])
       }
     },
     resetOptionMerge: function() {
