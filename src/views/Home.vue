@@ -53,7 +53,7 @@
       <div v-for="pair in unicornsByPair" :key="pair.idPair" class="pair">
         <h4 class="percent">
           Chance of success :
-          {{ pair.chancePercent }}
+          {{ pair.probabilityPercent }}
           %
         </h4>
         <div
@@ -205,10 +205,10 @@ export default {
       // Create pairs and compare colors for each characteristic to calculate chance percent
       if (this.showListUnicornsByPair) {
         const pairs = this.createAllPairs(this.unicornsList)
-        const pairsWithChance = []
+        const pairsWithProbability = []
         let idPair = 0
         pairs.map((pair) => {
-          let chance = 1
+          let probability = 1
           pair.map((unicorn, i, arr) => {
             if (i === 0) {
               Object.entries(unicorn.details).map((detail) => {
@@ -216,32 +216,30 @@ export default {
                 const colorSecondElementPair = arr[i + 1].details[detail[0]]
                 const colorSelected = this.selectedColors[detail[0]]
                 if (
-                  colorFirstElementPair === colorSecondElementPair &&
-                  colorFirstElementPair === colorSelected &&
-                  colorSecondElementPair === colorSelected
+                  colorFirstElementPair !== colorSecondElementPair &&
+                  (colorFirstElementPair === colorSelected ||
+                    colorSecondElementPair === colorSelected)
                 ) {
-                  chance *= 1
+                  probability *= 0.5
                 } else if (
-                  colorFirstElementPair === colorSelected ||
-                  colorSecondElementPair === colorSelected
+                  colorFirstElementPair !== colorSelected &&
+                  colorSecondElementPair !== colorSelected
                 ) {
-                  chance *= 0.5
-                } else {
-                  chance *= 0
+                  probability *= 0
                 }
               })
             }
           })
-          pairsWithChance.push({
+          pairsWithProbability.push({
             idPair: idPair,
-            chancePercent: chance * 100,
+            probabilityPercent: probability * 100,
             unicorns: pair
           })
           idPair++
         })
         // Sort by chance percent desc
-        this.unicornsByPair = pairsWithChance.sort(
-          (a, b) => b.chancePercent - a.chancePercent
+        this.unicornsByPair = pairsWithProbability.sort(
+          (a, b) => b.probabilityPercent - a.probabilityPercent
         )
       }
     },
