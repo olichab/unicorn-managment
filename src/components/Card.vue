@@ -1,7 +1,8 @@
 <template>
   <div class="card">
     <div class="card-img">
-      <img src="../assets/images/unicorn.svg" alt="unicorn" />
+      <imageUnicorn :colors="infosUnicorn.details" />
+      <!-- <img src="../assets/images/unicorn.svg" alt="unicorn" /> -->
       <span v-if="infosUnicorn.id" class="id-unicorn">{{
         infosUnicorn.id
       }}</span>
@@ -34,6 +35,7 @@
 </template>
 
 <script>
+import ImageUnicorn from './ImageUnicorn'
 export default {
   name: 'Card',
   props: {
@@ -41,6 +43,9 @@ export default {
       type: Object,
       required: true
     }
+  },
+  components: {
+    ImageUnicorn
   }
 }
 </script>
