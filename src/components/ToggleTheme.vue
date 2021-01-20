@@ -1,11 +1,31 @@
 <template>
-  <label id="switch" class="switch">
-    <input type="checkbox" id="slider" />
+  <label @change="toggleTheme" class="switch">
+    <input type="checkbox" :checked="this.theme === isDarkTheme" />
     <span class="slider round"></span>
   </label>
 </template>
 
-<script></script>
+<script>
+export default {
+  data() {
+    return {
+      theme: localStorage.getItem('theme') || 'lightTheme',
+      isDarkTheme: 'darkTheme'
+    }
+  },
+  mounted() {
+    localStorage.setItem('theme', this.theme)
+    document.documentElement.setAttribute('data-theme', this.theme)
+  },
+  methods: {
+    toggleTheme: function() {
+      this.theme = this.theme === 'darkTheme' ? 'lightTheme' : 'darkTheme'
+      document.documentElement.setAttribute('data-theme', this.theme)
+      localStorage.setItem('theme', this.theme)
+    }
+  }
+}
+</script>
 
 <style lang="less" scoped>
 @import '../utils/less/colors.less';

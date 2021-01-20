@@ -1,9 +1,6 @@
 <template>
   <div id="app">
-    <ToggleTheme
-      @change.native="toggleTheme"
-      class="toogle-theme"
-    ></ToggleTheme>
+    <ToggleTheme class="toogle-theme"></ToggleTheme>
     <router-view />
   </div>
 </template>
@@ -14,22 +11,6 @@ import ToggleTheme from './components/ToggleTheme'
 export default {
   components: {
     ToggleTheme
-  },
-  data() {
-    return {
-      theme: localStorage.getItem('theme') || 'lightTheme'
-    }
-  },
-  mounted() {
-    localStorage.setItem('theme', this.theme)
-    document.documentElement.setAttribute('data-theme', this.theme)
-  },
-  methods: {
-    toggleTheme: function() {
-      this.theme = this.theme === 'darkTheme' ? 'lightTheme' : 'darkTheme'
-      document.documentElement.setAttribute('data-theme', this.theme)
-      localStorage.setItem('theme', this.theme)
-    }
   }
 }
 </script>

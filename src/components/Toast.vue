@@ -15,9 +15,7 @@
                 : { 'background-color': color }
             ]"
           ></span>
-          <p>
-            {{ colors.length > 1 ? '50%' : '100%' }}
-          </p>
+          <p>{{ displayPercentage(colors) }} %</p>
         </h5>
       </li>
     </ul>
@@ -81,6 +79,9 @@ export default {
     },
     generate: function() {
       this.$parent.openModal()
+    },
+    displayPercentage: function(colors) {
+      return (colors.length / colors.length ** 2) * 100
     }
   }
 }

@@ -50,22 +50,21 @@
       </div>
     </div>
     <div class="list-unicorns-by-pair" v-else-if="this.showListUnicornsByPair">
-      <div v-for="pair in unicornsByPair" :key="pair.id" class="pair">
+      <div v-for="pair in unicornsByPair" :key="pair.idPair" class="pair">
         <h4 class="percent">
           Chance of success :
-          {{
-            calculatePercentChance(
-              pair[0].nbCorrespondenceColor,
-              pair[1].nbCorrespondenceColor
-            )
-          }}
+          {{ pair.chancePercent }}
           %
         </h4>
-        <div v-for="unicorn in pair" :key="unicorn.id" class="card-pair">
+        <div
+          v-for="unicorn in pair.unicorns"
+          :key="unicorn.id"
+          class="card-pair"
+        >
           <Card :infosUnicorn="unicorn"></Card>
         </div>
         <Button
-          @click.native="postUnicorn(pair)"
+          @click.native="postUnicornMulti(pair.unicorns)"
           class="button"
           :label="'Create'"
           :iconButton="'plus'"
@@ -84,7 +83,6 @@
 </template>
 
 <script>
-import axios from 'axios'
 import Button from '../components/Button'
 import Card from '../components/Card'
 import ButtonGroupColors from '../components/ButtonGroupColors'
@@ -132,36 +130,47 @@ export default {
     })
   },
   methods: {
-    postUnicorn: function(unicorns) {
-      let unicornToPost = {}
-      const randomize = (arr) => arr[Math.floor(Math.random() * arr.length)]
-      if (Array.isArray(unicorns)) {
-        unicornToPost = unicorns
-          .map((unicorn) => unicorn.details)
-          .reduce((acc, val, i, arr) => {
-            if (i === arr.length - 1) {
-              return {
-                details: {
-                  mane: randomize([val.mane, arr[i - 1].mane]),
-                  tail: randomize([val.tail, arr[i - 1].tail]),
-                  fur: randomize([val.fur, arr[i - 1].fur]),
-                  horn: randomize([val.horn, arr[i - 1].horn])
-                }
-              }
-            }
-          }, {})
-      } else {
-        unicornToPost = unicorns
-      }
-
-      axios
-        .post('/api/unicorn', unicornToPost.details)
+    postUnicornSimple: function(unicorn) {
+      this.$axios
+        .post('/api/unicorn', unicorn.details)
         .then((response) => this.unicornsList.push(response.data.unicorn))
         .catch((error) => {
           console.error('Error post unicorn:', error)
         })
       this.resetAllOpions()
     },
+    postUnicornMulti: function(unicorns) {
+      console.log('unicorns', unicorns)
+      let unicorn = {}
+      unicorn = unicorns
+        .map((unicorn) => unicorn.details)
+        .reduce((acc, val, i, arr) => {
+          if (i === arr.length - 1) {
+            return {
+              details: {
+                mane: this.randomize([val.mane, arr[i - 1].mane]),
+                tail: this.randomize([val.tail, arr[i - 1].tail]),
+                fur: this.randomize([val.fur, arr[i - 1].fur]),
+                horn: this.randomize([val.horn, arr[i - 1].horn])
+              }
+            }
+          }
+        }, {})
+
+      this.$axios
+        .post('/api/unicorn', unicorn.details)
+        .then((response) => this.unicornsList.push(response.data.unicorn))
+        .catch((error) => {
+          console.error('Error post unicorn:', error)
+        })
+      this.resetAllOpions()
+    },
+    openModal: function() {
+      this.$modal.show('new-unicorn-modal')
+    },
+    randomize: (arr) => arr[Math.floor(Math.random() * arr.length)],
+    createAllPairs: (arr) =>
+      arr.map((x, i) => arr.slice(i + 1).map((y) => [x, y])).flat(),
     selectCategory: function(type) {
       if (type === 'merge') {
         this.unicornsToMerge = []
@@ -172,17 +181,15 @@ export default {
         this.resetOptionMerge()
       }
     },
-    openModal: function() {
-      this.$modal.show('new-unicorn-modal')
-    },
-    calculatePercentChance: function(n1, n2) {
-      return ((n1 + n2) * 100) / 8
-    },
     setCardsToMerge: function(unicornToAdd) {
       const MAX_CARDS_SELECTION = 2
       const length = this.unicornsToMerge.length
       const unicornExist = this.unicornsToMerge.includes(unicornToAdd)
-      if (!unicornExist && length < MAX_CARDS_SELECTION) {
+      if (
+        this.selectionOptionMerge &&
+        !unicornExist &&
+        length < MAX_CARDS_SELECTION
+      ) {
         this.unicornsToMerge.push(unicornToAdd)
       } else if (unicornExist) {
         this.unicornsToMerge = this.unicornsToMerge.filter(
@@ -192,36 +199,50 @@ export default {
     },
     setCardsByPair: function(color) {
       const MAX_COLORS_SELECTION = 4
-      this.unicornsByPair = this.unicornsList
       Object.assign(this.selectedColors, color)
-      Object.keys(this.selectedColors).length === MAX_COLORS_SELECTION
-        ? (this.showListUnicornsByPair = true)
-        : (this.showListUnicornsByPair = false)
-      // If all colors characteristics are selected add nb correspondence witch colors selected
+      this.showListUnicornsByPair =
+        Object.entries(this.selectedColors).length === MAX_COLORS_SELECTION
+      // Create pairs and compare colors for each characteristic to calculate chance percent
       if (this.showListUnicornsByPair) {
-        this.unicornsByPair
-          .map((unicorn) => {
-            unicorn.nbCorrespondenceColor = 0
-            Object.keys(unicorn.details).map((characteristic) => {
-              if (
-                unicorn.details[characteristic] ===
-                this.selectedColors[characteristic]
-              ) {
-                typeof unicorn.nbCorrespondenceColor === 'undefined'
-                  ? (unicorn.nbCorrespondenceColor = 1)
-                  : unicorn.nbCorrespondenceColor++
-              }
-            })
+        const pairs = this.createAllPairs(this.unicornsList)
+        const pairsWithChance = []
+        let idPair = 0
+        pairs.map((pair) => {
+          let chance = 1
+          pair.map((unicorn, i, arr) => {
+            if (i === 0) {
+              Object.entries(unicorn.details).map((detail) => {
+                const colorFirstElementPair = detail[1]
+                const colorSecondElementPair = arr[i + 1].details[detail[0]]
+                const colorSelected = this.selectedColors[detail[0]]
+                if (
+                  colorFirstElementPair === colorSecondElementPair &&
+                  colorFirstElementPair === colorSelected &&
+                  colorSecondElementPair === colorSelected
+                ) {
+                  chance *= 1
+                } else if (
+                  colorFirstElementPair === colorSelected ||
+                  colorSecondElementPair === colorSelected
+                ) {
+                  chance *= 0.5
+                } else {
+                  chance *= 0
+                }
+              })
+            }
           })
-          // Sort by nbCorrespondenceColor desc
-          .sort((a, b) => b.nbCorrespondenceColor - a.nbCorrespondenceColor)
-        // Create array of pairs
-        this.unicornsByPair = this.unicornsByPair.reduce((acc, val, i, arr) => {
-          if (i % 2 === 0 && arr[i + 1]) {
-            acc.push([val, arr[i + 1]])
-          }
-          return acc
-        }, [])
+          pairsWithChance.push({
+            idPair: idPair,
+            chancePercent: chance * 100,
+            unicorns: pair
+          })
+          idPair++
+        })
+        // Sort by chance percent desc
+        this.unicornsByPair = pairsWithChance.sort(
+          (a, b) => b.chancePercent - a.chancePercent
+        )
       }
     },
     resetOptionMerge: function() {

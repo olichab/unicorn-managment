@@ -71,6 +71,18 @@ export default {
 
   .card-body {
     padding: 0.75rem 1rem;
+    h3 {
+      width: 140px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      @media @tablet {
+        width: 250px;
+      }
+      @media @desktop {
+        width: 120px;
+      }
+    }
     h4 {
       font-size: 0.85rem;
       @media @tablet {

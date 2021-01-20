@@ -55,6 +55,7 @@ export default {
   },
   methods: {
     beforeOpenModal(event) {
+      let idPossibility = 0
       this.unicorns
         // Recover all colors pairs
         .reduce(
@@ -68,31 +69,33 @@ export default {
         )
         // Find all combinations
         .reduce(
-          (acc, val) => {
-            return acc.flatMap((x) => val.map((y) => `${x}${y} `))
-          },
+          (acc, val, i, arr) =>
+            acc.flatMap((x) =>
+              val.map((y) => {
+                if (i === arr.length - 1) {
+                  this.unicornPossibilities.push({
+                    idPossibility: idPossibility,
+                    details: {
+                      mane: x[0],
+                      tail: x[1],
+                      fur: x[2],
+                      horn: y
+                    }
+                  })
+                  idPossibility++
+                }
+                return [...x, y]
+              })
+            ),
           ['']
         )
-        // Format unicorn data to display
-        .map((colors, i) => {
-          colors = colors.trim().split(' ')
-          this.unicornPossibilities.push({
-            idPossibility: i,
-            details: {
-              mane: colors[0],
-              tail: colors[1],
-              fur: colors[2],
-              horn: colors[3]
-            }
-          })
-        })
     },
     closeModal() {
       this.unicornPossibilities = []
       this.$modal.hide('new-unicorn-modal')
     },
     postUnicorn: function(unicorn) {
-      this.$parent.postUnicorn(unicorn)
+      this.$parent.postUnicornSimple(unicorn)
       this.unicornPossibilities = []
     }
   }

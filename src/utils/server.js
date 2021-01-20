@@ -30,7 +30,7 @@ export function makeServer({ environment = 'development' } = {}) {
     seeds(server) {
       for (let i = 0; i < nStartingUnicorns; i++) {
         server.create('unicorn', {
-          name: getRandomName().slice(0, 12),
+          name: getRandomName(),
           details: {
             mane: maneColors[i],
             tail: tailColors[i],
