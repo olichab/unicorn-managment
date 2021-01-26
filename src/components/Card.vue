@@ -2,7 +2,6 @@
   <div class="card">
     <div class="card-img">
       <imageUnicorn :colors="infosUnicorn.details" />
-      <!-- <img src="../assets/images/unicorn.svg" alt="unicorn" /> -->
       <span v-if="infosUnicorn.id" class="id-unicorn">{{
         infosUnicorn.id
       }}</span>
@@ -12,7 +11,7 @@
       <ul>
         <li
           v-for="(color, characteristic) in infosUnicorn.details"
-          :key="characteristic"
+          :key="`key-${characteristic}`"
         >
           <h5>
             {{ characteristic | uppercaseFirstLetter }}
@@ -33,7 +32,6 @@
     </div>
   </div>
 </template>
-
 <script>
 import ImageUnicorn from './ImageUnicorn'
 export default {

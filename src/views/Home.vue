@@ -74,10 +74,13 @@
     <Toast
       v-if="unicornsToMerge.length > 1"
       :unicorns="unicornsToMerge"
+      :resetOptionMerge="resetOptionMerge"
+      :openModal="openModal"
     ></Toast>
     <ModalNewUnicorn
       name="new-unicorn-modal"
       :unicorns="unicornsToMerge"
+      :postUnicornSimple="postUnicornSimple"
     ></ModalNewUnicorn>
   </div>
 </template>

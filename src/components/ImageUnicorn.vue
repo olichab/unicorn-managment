@@ -202,6 +202,7 @@
 
 <script>
 export default {
+  name: 'ImageUnicorn',
   props: {
     colors: {
       type: Object,

@@ -15,7 +15,7 @@
     <div class="cards-modal-wrapper">
       <div
         v-for="unicorn in unicornPossibilities"
-        :key="unicorn.idPossibility"
+        :key="unicorn.id"
         class="card-modal-wrapper"
       >
         <Card :infosUnicorn="unicorn"></Card>
@@ -46,6 +46,10 @@ export default {
     unicorns: {
       type: Array,
       required: true
+    },
+    postUnicornSimple: {
+      type: Function,
+      required: true
     }
   },
   data() {
@@ -74,7 +78,7 @@ export default {
               val.map((y) => {
                 if (i === arr.length - 1) {
                   this.unicornPossibilities.push({
-                    idPossibility: idPossibility,
+                    id: idPossibility,
                     details: {
                       mane: x[0],
                       tail: x[1],
@@ -91,11 +95,11 @@ export default {
         )
     },
     closeModal() {
-      this.unicornPossibilities = []
       this.$modal.hide('new-unicorn-modal')
+      this.unicornPossibilities = []
     },
     postUnicorn: function(unicorn) {
-      this.$parent.postUnicornSimple(unicorn)
+      this.postUnicornSimple(unicorn)
       this.unicornPossibilities = []
     }
   }

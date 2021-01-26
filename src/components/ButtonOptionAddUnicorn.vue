@@ -62,6 +62,7 @@
 
 <script>
 export default {
+  name: 'ButtonOptionAddunicorn',
   props: {
     title: {
       type: String,

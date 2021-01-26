@@ -7,6 +7,7 @@
 
 <script>
 export default {
+  name: 'Toggletheme',
   data() {
     return {
       theme: localStorage.getItem('theme') || 'lightTheme',

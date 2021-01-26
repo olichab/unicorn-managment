@@ -37,13 +37,21 @@
 <script>
 import Button from '../components/Button'
 export default {
-  name: 'toast',
+  name: 'Toast',
   components: {
     Button
   },
   props: {
     unicorns: {
       type: Array,
+      required: true
+    },
+    resetOptionMerge: {
+      type: Function,
+      required: true
+    },
+    openModal: {
+      type: Function,
       required: true
     }
   },
@@ -57,13 +65,13 @@ export default {
     this.colorsPercent = this.unicorns
       .map((unicorn) => unicorn.details)
       .reduce(
-        (result, characteristics) => {
+        (acc, characteristics) => {
           Object.entries(characteristics).map((characteristic) => {
             const key = `${characteristic[0]}`
             const value = characteristic[1]
-            return !result[key].includes(value) ? result[key].push(value) : null
+            return !acc[key].includes(value) ? acc[key].push(value) : null
           })
-          return result
+          return acc
         },
         {
           mane: [],
@@ -75,14 +83,12 @@ export default {
   },
   methods: {
     cancel: function() {
-      this.$parent.resetOptionMerge()
+      this.resetOptionMerge()
     },
     generate: function() {
-      this.$parent.openModal()
+      this.openModal()
     },
-    displayPercentage: function(colors) {
-      return (colors.length / colors.length ** 2) * 100
-    }
+    displayPercentage: (colors) => (colors.length / colors.length ** 2) * 100
   }
 }
 </script>
