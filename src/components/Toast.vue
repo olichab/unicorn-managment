@@ -1,7 +1,7 @@
 <template>
   <div class="toast">
     <ul>
-      <li v-for="(colors, characteristic, i) in colorsPercent" :key="i">
+      <li v-for="(colors, characteristic, i) in colorsUnicornsToMerge" :key="i">
         <h5 class="characteristic">
           {{ characteristic | uppercaseFirstLetter }}
         </h5>
@@ -15,18 +15,18 @@
                 : { 'background-color': color }
             ]"
           ></span>
-          <p>{{ displayPercentage(colors) }} %</p>
+          <p>{{ percentColorsMerge(colors) }} %</p>
         </h5>
       </li>
     </ul>
     <div class="buttons-wrapper">
       <Button
-        @click.native="cancel"
+        @click.native="resetOptionMerge"
         :label="'Cancel'"
         :iconButton="'ban'"
       ></Button>
       <Button
-        @click.native="generate"
+        @click.native="showModal($modal)"
         :label="'Generate'"
         :iconButton="'sync-alt'"
       ></Button>
@@ -35,6 +35,7 @@
 </template>
 
 <script>
+import { mapState, mapGetters, mapActions } from 'vuex'
 import Button from '../components/Button'
 export default {
   name: 'Toast',
@@ -45,50 +46,23 @@ export default {
     unicorns: {
       type: Array,
       required: true
-    },
-    resetOptionMerge: {
-      type: Function,
-      required: true
-    },
-    openModal: {
-      type: Function,
-      required: true
     }
+  },
+  computed: {
+    ...mapState(['colorsUnicornsToMerge']),
+    ...mapGetters(['percentColorsMerge'])
   },
 
-  data() {
-    return {
-      colorsPercent: {}
-    }
-  },
   mounted() {
-    this.colorsPercent = this.unicorns
-      .map((unicorn) => unicorn.details)
-      .reduce(
-        (acc, characteristics) => {
-          Object.entries(characteristics).map((characteristic) => {
-            const key = `${characteristic[0]}`
-            const value = characteristic[1]
-            return !acc[key].includes(value) ? acc[key].push(value) : null
-          })
-          return acc
-        },
-        {
-          mane: [],
-          tail: [],
-          fur: [],
-          horn: []
-        }
-      )
+    this.setColorsUnicornsToMerge(this.unicorns)
   },
   methods: {
-    cancel: function() {
-      this.resetOptionMerge()
-    },
-    generate: function() {
-      this.openModal()
-    },
-    displayPercentage: (colors) => (colors.length / colors.length ** 2) * 100
+    ...mapActions([
+      'showModal',
+      'resetOptionMerge',
+      'setColorsUnicornsToMerge',
+      'displayPercentageColors'
+    ])
   }
 }
 </script>

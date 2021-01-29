@@ -10,14 +10,14 @@
     </div>
     <div class="buttons-creation-wrapper" v-if="showOptionsAddUnicorn">
       <ButtonOptionAddUnicorn
-        @click.native="selectCategory('merge')"
+        @click.native="selectOptionMerge()"
         :title="'Merge'"
         :text="'Select two unicorns to merge them together'"
         :logo="'merge'"
         :class="['button-creation', { active: selectionOptionMerge }]"
       ></ButtonOptionAddUnicorn>
       <ButtonOptionAddUnicorn
-        @click.native="selectCategory('bycolor')"
+        @click.native="selectOptionByColor()"
         :title="'By Color'"
         :text="'Select a color for each characteristic'"
         :logo="'bycolor'"
@@ -31,9 +31,9 @@
       <ButtonGroupColors
         v-for="colors in colorsCharacteristics"
         :key="Object.keys(colors)[0]"
+        @click.native="setCardsByPair()"
         :colors="Object.values(colors)[0]"
         :label="Object.keys(colors)[0]"
-        @selectColor="setCardsByPair($event)"
       >
       </ButtonGroupColors>
     </div>
@@ -49,8 +49,12 @@
         ></Card>
       </div>
     </div>
-    <div class="list-unicorns-by-pair" v-else-if="this.showListUnicornsByPair">
-      <div v-for="pair in unicornsByPair" :key="pair.idPair" class="pair">
+    <div class="list-unicorns-by-pair" v-else-if="showListUnicornsByPair">
+      <div
+        v-for="pair in sortedUnicornsListByPair"
+        :key="pair.idPair"
+        class="pair"
+      >
         <h4 class="percent">
           Chance of success :
           {{ pair.probabilityPercent }}
@@ -64,35 +68,29 @@
           <Card :infosUnicorn="unicorn"></Card>
         </div>
         <Button
-          @click.native="postUnicornMulti(pair.unicorns)"
+          @click.native="postUnicornWithRandomColors(pair.unicorns)"
           class="button"
           :label="'Create'"
           :iconButton="'plus'"
         ></Button>
       </div>
     </div>
-    <Toast
-      v-if="unicornsToMerge.length > 1"
-      :unicorns="unicornsToMerge"
-      :resetOptionMerge="resetOptionMerge"
-      :openModal="openModal"
-    ></Toast>
+    <Toast v-if="showToast" :unicorns="unicornsToMerge"></Toast>
     <ModalNewUnicorn
       name="new-unicorn-modal"
       :unicorns="unicornsToMerge"
-      :postUnicornSimple="postUnicornSimple"
     ></ModalNewUnicorn>
   </div>
 </template>
 
 <script>
+import { mapState, mapGetters, mapActions } from 'vuex'
 import Button from '../components/Button'
 import Card from '../components/Card'
 import ButtonGroupColors from '../components/ButtonGroupColors'
 import ButtonOptionAddUnicorn from '../components/ButtonOptionAddUnicorn'
 import Toast from '../components/Toast'
 import ModalNewUnicorn from '../components/ModalNewUnicorn'
-import { maneColors, tailColors, hornColors, furColors } from '../utils/config'
 
 export default {
   name: 'Home',
@@ -104,165 +102,37 @@ export default {
     Toast,
     ModalNewUnicorn
   },
-  data() {
-    return {
-      unicornsList: [],
-      unicornsToMerge: [],
-      selectedColors: {},
-      unicornsByPair: [],
-      colorsCharacteristics: [
-        { mane: maneColors },
-        { tail: tailColors },
-        { fur: furColors },
-        { horn: hornColors }
-      ],
-      showOptionsAddUnicorn: false,
-      selectionOptionByColor: false,
-      selectionOptionMerge: false,
-      showListUnicornsByPair: false
-    }
-  },
   computed: {
-    reversedUnicornsList: function() {
-      return this.unicornsList.map((u) => u).sort((a, b) => b.id - a.id)
-    }
+    ...mapGetters([
+      'reversedUnicornsList',
+      'showToast',
+      'showListUnicornsByPair',
+      'sortedUnicornsListByPair'
+    ]),
+    ...mapState([
+      'unicornsList',
+      'unicornsToMerge',
+      'selectedColors',
+      'showOptionsAddUnicorn',
+      'selectionOptionByColor',
+      'selectionOptionMerge',
+      'colorsCharacteristics'
+    ])
   },
   mounted() {
-    this.$axios.get('/api/unicorns').then((response) => {
-      this.unicornsList = response.data.unicorns
-    })
+    this.getUnicornsList()
   },
   methods: {
-    postUnicornSimple: function(unicorn) {
-      this.$axios
-        .post('/api/unicorn', unicorn.details)
-        .then((response) => this.unicornsList.push(response.data.unicorn))
-        .catch((error) => {
-          console.error('Error post unicorn:', error)
-        })
-      this.resetAllOpions()
-    },
-    postUnicornMulti: function(unicorns) {
-      console.log('unicorns', unicorns)
-      let unicorn = {}
-      unicorn = unicorns
-        .map((unicorn) => unicorn.details)
-        .reduce((acc, val, i, arr) => {
-          if (i === arr.length - 1) {
-            return {
-              details: {
-                mane: this.randomize([val.mane, arr[i - 1].mane]),
-                tail: this.randomize([val.tail, arr[i - 1].tail]),
-                fur: this.randomize([val.fur, arr[i - 1].fur]),
-                horn: this.randomize([val.horn, arr[i - 1].horn])
-              }
-            }
-          }
-        }, {})
-
-      this.$axios
-        .post('/api/unicorn', unicorn.details)
-        .then((response) => this.unicornsList.push(response.data.unicorn))
-        .catch((error) => {
-          console.error('Error post unicorn:', error)
-        })
-      this.resetAllOpions()
-    },
-    openModal: function() {
-      this.$modal.show('new-unicorn-modal')
-    },
-    randomize: (arr) => arr[Math.floor(Math.random() * arr.length)],
-    createAllPairs: (arr) =>
-      arr.map((x, i) => arr.slice(i + 1).map((y) => [x, y])).flat(),
-    selectCategory: function(type) {
-      if (type === 'merge') {
-        this.unicornsToMerge = []
-        this.selectionOptionMerge = !this.selectionOptionMerge
-        this.resetOptionByColor()
-      } else if (type === 'bycolor') {
-        this.selectionOptionByColor = !this.selectionOptionByColor
-        this.resetOptionMerge()
-      }
-    },
-    setCardsToMerge: function(unicornToAdd) {
-      const MAX_CARDS_SELECTION = 2
-      const length = this.unicornsToMerge.length
-      const unicornExist = this.unicornsToMerge.includes(unicornToAdd)
-      if (
-        this.selectionOptionMerge &&
-        !unicornExist &&
-        length < MAX_CARDS_SELECTION
-      ) {
-        this.unicornsToMerge.push(unicornToAdd)
-      } else if (unicornExist) {
-        this.unicornsToMerge = this.unicornsToMerge.filter(
-          (unicorn) => unicorn.id !== unicornToAdd.id
-        )
-      }
-    },
-    setCardsByPair: function(color) {
-      const MAX_COLORS_SELECTION = 4
-      Object.assign(this.selectedColors, color)
-      this.showListUnicornsByPair =
-        Object.entries(this.selectedColors).length === MAX_COLORS_SELECTION
-      // Create pairs and compare colors for each characteristic to calculate chance percent
-      if (this.showListUnicornsByPair) {
-        const pairs = this.createAllPairs(this.unicornsList)
-        const pairsWithProbability = []
-        let idPair = 0
-        pairs.map((pair) => {
-          let probability = 1
-          pair.map((unicorn, i, arr) => {
-            if (i === 0) {
-              Object.entries(unicorn.details).map((detail) => {
-                const colorFirstElementPair = detail[1]
-                const colorSecondElementPair = arr[i + 1].details[detail[0]]
-                const colorSelected = this.selectedColors[detail[0]]
-                if (
-                  colorFirstElementPair !== colorSecondElementPair &&
-                  (colorFirstElementPair === colorSelected ||
-                    colorSecondElementPair === colorSelected)
-                ) {
-                  probability *= 0.5
-                } else if (
-                  colorFirstElementPair !== colorSelected &&
-                  colorSecondElementPair !== colorSelected
-                ) {
-                  probability *= 0
-                }
-              })
-            }
-          })
-          pairsWithProbability.push({
-            idPair: idPair,
-            probabilityPercent: probability * 100,
-            unicorns: pair
-          })
-          idPair++
-        })
-        // Sort by chance percent desc
-        this.unicornsByPair = pairsWithProbability.sort(
-          (a, b) => b.probabilityPercent - a.probabilityPercent
-        )
-      }
-    },
-    resetOptionMerge: function() {
-      window.scrollTo(0, 0)
-      this.selectionOptionMerge = false
-      this.unicornsToMerge = []
-      this.$modal.hide('new-unicorn-modal')
-    },
-    resetOptionByColor: function() {
-      window.scrollTo(0, 0)
-      this.selectionOptionByColor = false
-      this.unicornsByPair = []
-      this.selectedColors = {}
-    },
-    resetAllOpions: function() {
-      this.showOptionsAddUnicorn = !this.showOptionsAddUnicorn
-      this.resetOptionMerge()
-      this.resetOptionByColor()
-    }
+    ...mapActions([
+      'getUnicornsList',
+      'postUnicorn',
+      'postUnicornWithRandomColors',
+      'selectOptionMerge',
+      'selectOptionByColor',
+      'resetAllOpions',
+      'setCardsToMerge',
+      'setCardsByPair'
+    ])
   }
 }
 </script>
