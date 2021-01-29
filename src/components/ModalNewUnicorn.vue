@@ -1,26 +1,26 @@
 <template>
   <modal
     name="new-unicorn-modal"
-    @before-open="beforeOpenModal"
-    @closed="closeModal"
+    @before-open="findAllUnicornPossibilities(unicorns)"
+    @closed="hideModal($modal)"
     :height="'auto'"
     :width="'90%'"
     :scrollable="true"
     classes="modal"
   >
     <div class="button-close">
-      <font-awesome-icon @click="closeModal" :icon="['fas', 'times']" />
+      <font-awesome-icon @click="hideModal($modal)" :icon="['fas', 'times']" />
     </div>
     <h1>Choose your baby unicorn</h1>
     <div class="cards-modal-wrapper">
       <div
         v-for="unicorn in unicornPossibilities"
-        :key="unicorn.idPossibility"
+        :key="unicorn.id"
         class="card-modal-wrapper"
       >
         <Card :infosUnicorn="unicorn"></Card>
         <Button
-          @click.native="postUnicorn(unicorn)"
+          @click.native="post(unicorn, $modal)"
           :label="'Create'"
           :iconButton="'plus'"
         ></Button>
@@ -30,11 +30,9 @@
 </template>
 
 <script>
-import Vue from 'vue'
-import VModal from 'vue-js-modal'
+import { mapState, mapActions } from 'vuex'
 import Card from '../components/Card'
 import Button from '../components/Button'
-Vue.use(VModal)
 
 export default {
   name: 'ModalNewUnicorn',
@@ -48,55 +46,14 @@ export default {
       required: true
     }
   },
-  data() {
-    return {
-      unicornPossibilities: []
-    }
+  computed: {
+    ...mapState(['unicornPossibilities'])
   },
   methods: {
-    beforeOpenModal(event) {
-      let idPossibility = 0
-      this.unicorns
-        // Recover all colors pairs
-        .reduce(
-          (acc, unicorn, i) => {
-            Object.values(unicorn.details).map((color, i) =>
-              !acc[i].includes(color) ? acc[i].push(color) : null
-            )
-            return acc
-          },
-          [[], [], [], []]
-        )
-        // Find all combinations
-        .reduce(
-          (acc, val, i, arr) =>
-            acc.flatMap((x) =>
-              val.map((y) => {
-                if (i === arr.length - 1) {
-                  this.unicornPossibilities.push({
-                    idPossibility: idPossibility,
-                    details: {
-                      mane: x[0],
-                      tail: x[1],
-                      fur: x[2],
-                      horn: y
-                    }
-                  })
-                  idPossibility++
-                }
-                return [...x, y]
-              })
-            ),
-          ['']
-        )
-    },
-    closeModal() {
-      this.unicornPossibilities = []
-      this.$modal.hide('new-unicorn-modal')
-    },
-    postUnicorn: function(unicorn) {
-      this.$parent.postUnicornSimple(unicorn)
-      this.unicornPossibilities = []
+    ...mapActions(['postUnicorn', 'hideModal', 'findAllUnicornPossibilities']),
+    post: function(unicorn, modal) {
+      this.postUnicorn(unicorn)
+      this.hideModal(modal)
     }
   }
 }

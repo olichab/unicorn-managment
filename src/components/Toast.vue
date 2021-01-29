@@ -1,7 +1,7 @@
 <template>
   <div class="toast">
     <ul>
-      <li v-for="(colors, characteristic, i) in colorsPercent" :key="i">
+      <li v-for="(colors, characteristic, i) in colorsUnicornsToMerge" :key="i">
         <h5 class="characteristic">
           {{ characteristic | uppercaseFirstLetter }}
         </h5>
@@ -15,18 +15,18 @@
                 : { 'background-color': color }
             ]"
           ></span>
-          <p>{{ displayPercentage(colors) }} %</p>
+          <p>{{ percentColorsMerge(colors) }} %</p>
         </h5>
       </li>
     </ul>
     <div class="buttons-wrapper">
       <Button
-        @click.native="cancel"
+        @click.native="resetOptionMerge"
         :label="'Cancel'"
         :iconButton="'ban'"
       ></Button>
       <Button
-        @click.native="generate"
+        @click.native="showModal($modal)"
         :label="'Generate'"
         :iconButton="'sync-alt'"
       ></Button>
@@ -35,9 +35,10 @@
 </template>
 
 <script>
+import { mapState, mapGetters, mapActions } from 'vuex'
 import Button from '../components/Button'
 export default {
-  name: 'toast',
+  name: 'Toast',
   components: {
     Button
   },
@@ -47,42 +48,21 @@ export default {
       required: true
     }
   },
-
-  data() {
-    return {
-      colorsPercent: {}
-    }
+  computed: {
+    ...mapState(['colorsUnicornsToMerge']),
+    ...mapGetters(['percentColorsMerge'])
   },
+
   mounted() {
-    this.colorsPercent = this.unicorns
-      .map((unicorn) => unicorn.details)
-      .reduce(
-        (result, characteristics) => {
-          Object.entries(characteristics).map((characteristic) => {
-            const key = `${characteristic[0]}`
-            const value = characteristic[1]
-            return !result[key].includes(value) ? result[key].push(value) : null
-          })
-          return result
-        },
-        {
-          mane: [],
-          tail: [],
-          fur: [],
-          horn: []
-        }
-      )
+    this.setColorsUnicornsToMerge(this.unicorns)
   },
   methods: {
-    cancel: function() {
-      this.$parent.resetOptionMerge()
-    },
-    generate: function() {
-      this.$parent.openModal()
-    },
-    displayPercentage: function(colors) {
-      return (colors.length / colors.length ** 2) * 100
-    }
+    ...mapActions([
+      'showModal',
+      'resetOptionMerge',
+      'setColorsUnicornsToMerge',
+      'displayPercentageColors'
+    ])
   }
 }
 </script>

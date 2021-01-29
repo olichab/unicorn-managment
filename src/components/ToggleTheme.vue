@@ -1,28 +1,22 @@
 <template>
   <label @change="toggleTheme" class="switch">
-    <input type="checkbox" :checked="this.theme === isDarkTheme" />
+    <input type="checkbox" :checked="this.theme === 'darkTheme'" />
     <span class="slider round"></span>
   </label>
 </template>
 
 <script>
+import { mapState, mapActions } from 'vuex'
 export default {
-  data() {
-    return {
-      theme: localStorage.getItem('theme') || 'lightTheme',
-      isDarkTheme: 'darkTheme'
-    }
+  name: 'Toggletheme',
+  computed: {
+    ...mapState(['theme'])
   },
   mounted() {
-    localStorage.setItem('theme', this.theme)
-    document.documentElement.setAttribute('data-theme', this.theme)
+    this.setTheme()
   },
   methods: {
-    toggleTheme: function() {
-      this.theme = this.theme === 'darkTheme' ? 'lightTheme' : 'darkTheme'
-      document.documentElement.setAttribute('data-theme', this.theme)
-      localStorage.setItem('theme', this.theme)
-    }
+    ...mapActions(['setTheme', 'toggleTheme'])
   }
 }
 </script>

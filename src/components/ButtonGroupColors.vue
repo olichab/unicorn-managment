@@ -5,7 +5,7 @@
       <button
         v-for="(color, index) in colors"
         :key="index"
-        @click="selectColor(color, index)"
+        @click="select(color, index)"
         type="button"
         :style="[
           color === 'white'
@@ -19,7 +19,9 @@
 </template>
 
 <script>
+import { mapActions } from 'vuex'
 export default {
+  name: 'ButtonGroupcolors',
   props: {
     colors: {
       type: Array,
@@ -32,15 +34,15 @@ export default {
   },
   data() {
     return {
-      activeColor: null,
-      selectedColor: {}
+      activeColor: null
     }
   },
   methods: {
-    selectColor: function(color, index) {
+    ...mapActions(['selectColor']),
+    select: function(color, index) {
       this.activeColor = index
-      this.$set(this.selectedColor, [this.label], color)
-      this.$emit('selectColor', this.selectedColor)
+      const payload = [this.label, color]
+      this.selectColor(payload)
     }
   }
 }

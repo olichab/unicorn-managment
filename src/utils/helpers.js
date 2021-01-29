@@ -1,4 +1,4 @@
-export function shuffle (array) {
+export function shuffle(array) {
   let currentIndex = array.length
   let temporaryValue
   let randomIndex
@@ -14,3 +14,13 @@ export function shuffle (array) {
 
   return array
 }
+
+export const randomize = (arr) => arr[Math.floor(Math.random() * arr.length)]
+
+export const calculatePercentage = (arr) => {
+  const len = arr.length
+  return (len / len ** 2) * 100
+}
+
+export const createAllPairs = (arr) =>
+  arr.map((x, i) => arr.slice(i + 1).map((y) => [x, y])).flat()
